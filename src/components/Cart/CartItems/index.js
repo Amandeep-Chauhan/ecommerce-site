@@ -1,7 +1,6 @@
-import { useContext, useState, useEffect, useCallback } from 'react';
+import { useContext } from 'react';
 
 import Grid from '@mui/material/Grid';
-import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
 import RemoveIcon from '@mui/icons-material/Remove';
@@ -15,20 +14,53 @@ import { AppContext } from '@/context/AppContext';
 
 const CartItems = ({ item }) => {
   const { store, setStore } = useContext(AppContext);
-  const [quantity, setQuantity] = useState(1);
 
   const { cartItems, wishList } = store || {};
 
-  const decrement = () => {
-    if (quantity > 1) {
-      setQuantity(quantity - 1);
-    }
+  const decrement = (e) => {
+    e.stopPropagation();
+
+    setStore(prev => {
+      return {
+        ...prev,
+        cartItems: (prev.cartItems || []).reduce((acc, cv) => {
+          const quantity = (cv?.quantity || 0) - 1;
+
+          if (cv.id === item.id && quantity <= 0) {
+            return [...acc];
+          }
+
+          return [
+            ...acc,
+            { ...cv, quantity: cv.id === item.id ? quantity : cv.quantity }
+          ];
+        }, [])
+      };
+    });
   };
 
-  const increment = () => {
-    if (quantity < 10) {
-      setQuantity(quantity + 1);
-    }
+  const increment = (e) => {
+    e.stopPropagation();
+
+    setStore(prev => {
+      return {
+        ...prev,
+        cartItems: (prev.cartItems || []).reduce((acc, cv) => {
+          const quantity = (cv?.quantity || 0) + 1;
+
+          if (cv.id === item.id && quantity > 10) {
+            alert('can not be more than 10');
+
+            return [...acc, cv];
+          }
+
+          return [
+            ...acc,
+            { ...cv, quantity: cv.id === item.id ? quantity : cv.quantity }
+          ];
+        }, [])
+      };
+    });
   };
 
   const isFavourite = wishList.filter((val) => val.id === item.id).length > 0;
@@ -47,20 +79,7 @@ const CartItems = ({ item }) => {
     setStore((prev)=> ({...prev, cartItems: filteredItems }));
   }
 
-  const updateCartItems = cartItems.map((val) => {
-    if(val.id === item.id){
-         return { 
-            ...val,
-            quantity,
-            product_total: item.price * quantity,
-          };
-    };
-    return val;
-  })
-  
-  useEffect(() => {
-    setStore((prev)=> ({...prev, cartItems: updateCartItems }))
-  }, [quantity])
+  const quantity = store?.cartItems.find(_ => _?.id === item?.id)?.quantity || 0;
 
   return (
     <Container container key={item.id}>
@@ -85,19 +104,12 @@ const CartItems = ({ item }) => {
       <Grid item xs={2} sx={{ display:'flex', alignItems: 'center', justifyContent: 'center' }}>
         <CountInput>
           <RemoveIcon onClick={decrement} size='small' sx={{ cursor: 'pointer' }}/>
-          <TextField
-            id="outlined-size-small"
-            value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
-            defaultValue="Small"
-            size="small"
-            sx={{ width: "50px", marginInline: '8px' }}
-          />
+          {quantity}
           <AddIcon onClick={increment} size='small' sx={{ cursor: 'pointer' }}/>
         </CountInput>
       </Grid>
       <Grid item xs={2} sx={{ display:'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Item>INR {eval(item.price * quantity)}</Item>
+        <Item>INR {(item.price * quantity).toFixed(2)}</Item>
       </Grid>
       <Grid item xs={2} sx={{ display:'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Item>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useContext, useState } from 'react'
+import React, { useContext } from 'react'
 import useGetDetails from './hooks/useGetDetails';
 
 import Box from '@mui/material/Box';
@@ -23,8 +23,6 @@ const Details = () => {
     const { data }= useGetDetails(params?.id);
     const { image, title, description, category, price, rating } = data || {};
 
-    const isAlreadyAdded = cartItems?.includes(data);
-
     const handleRemoveFromCart = () => {
         const filteredList = cartItems.filter((item) => item.id !== data.id)
         setStore((prev) => ({
@@ -32,6 +30,35 @@ const Details = () => {
             cartItems: filteredList,
         }));
     };
+
+    const onClickAddToCartButton = () => {
+        setStore((prev)=> {
+            let tempCartItems = [...prev.cartItems];
+
+            const isProductPresent = tempCartItems.some(_ => _.id === data?.id);
+
+            if (isProductPresent) {
+                tempCartItems = tempCartItems.map(_ => {
+                    return {
+                        ..._,
+                        quantity: _.id === data?.id ? ((_.quantity || 0) + 1) : _.quantity,
+                    };
+                });
+            } else {
+                tempCartItems = [
+                    ...tempCartItems,
+                    { ...data, quantity: 1 }
+                ];
+            }
+
+            return {
+                ...prev,
+                cartItems: tempCartItems 
+            };
+        });
+    };
+
+    const isAlreadyAdded = store?.cartItems?.some(_ => _.id === data?.id);
 
     return (
         <Container maxWidth="lg">
@@ -70,11 +97,18 @@ const Details = () => {
                                     <Button sx={{  color: '#000', marginRight: '16px' }} variant="outlined" onClick={handleRemoveFromCart}>
                                         Remove from Cart
                                     </Button> 
-                                    <Button variant="contained" sx={{  color: '#fff', backgroundColor: '#000' }} onClick={()=> push('/cart')}>Go to Cart</Button>
+                                    <Button variant="contained" sx={{  color: '#fff', backgroundColor: '#000', marginRight: '12px' }} onClick={()=> push('/cart')}>Go to Cart</Button>
+                                    <Button sx={{  color: '#fff', backgroundColor: '#000' }} className='go_to_cart' variant="contained" onClick={()=> push('/dashboard')}>
+                                        Shop more
+                                    </Button>
                                 </div>
-                                :<Button sx={{  color: '#fff', backgroundColor: '#000' }} className='go_to_cart' variant="contained" onClick={()=> setStore((prev)=> ({...prev, cartItems: [...prev.cartItems, data] }))}>
-                                    Add to Cart
-                                </Button>
+                                :
+                                <div>
+                                    <Button sx={{  color: '#fff', backgroundColor: '#000' }} className='go_to_cart' variant="contained" onClick={() => onClickAddToCartButton()}>
+                                        Add to Cart
+                                    </Button>
+                                   
+                                </div>
                             }
                         </Actions>
                     </CardContent>

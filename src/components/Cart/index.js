@@ -12,8 +12,6 @@ const Cart = () => {
   const { push } = useRouter();
   const { cartItems } = store || {};
 
-  const totalAmount = cartItems.reduce((acc, curr) => acc + curr?.product_total, 0);
-
   const loadScript = (src) => {
     return new Promise((resovle) => {
       const script = document.createElement("script");
@@ -51,8 +49,11 @@ const Cart = () => {
 
       handler: function (response) {
         alert("Payment Successfully", response.razorpay_payment_id);
-        setStore({ productList: [], cartItems: [], wishList: [] });
         push('/dashboard');
+
+        setTimeout(() => {
+          setStore({ productList: [], cartItems: [], wishList: [] });
+        }, 1000);
       },
       prefill: {
         name: "StellarStore",
@@ -63,16 +64,21 @@ const Cart = () => {
     paymentObject.open();
   };
 
+  const totalAmount = cartItems.reduce((acc, curr) => acc + (curr?.price * curr?.quantity), 0);
+
   return (
       <Container maxWidth="md" sx={{ border: '1px solid', borderRadius: "4px", marginTop: '20px', padding: '20px 0 12px 0' }}>
           {cartItems.map((item)=> <CartItems key={item?.id} item={item} />)}
+          
           <Typography variant="h4" sx={{ textAlign: 'right' }}>
               Total: INR {(totalAmount || 0).toFixed(2)}
           </Typography>
 
-          <Button onClick={() => displayRazorpay(totalAmount || '200')}>
+          <Typography sx={{ textAlign: 'right' }}>
+           <Button onClick={() => displayRazorpay(totalAmount || '200')} sx={{ fontSize: '18px' }}>
                 BUY NOW
           </Button>
+          </Typography>
       </Container>
   );
 };
