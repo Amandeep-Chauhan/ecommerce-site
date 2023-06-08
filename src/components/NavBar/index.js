@@ -5,9 +5,9 @@ import Button from '@mui/material/Button';
 import { Typography } from '@mui/material'
 import LocalMallIcon from '@mui/icons-material/LocalMall';
 import Badge from '@mui/material/Badge';
-import { Container } from './styles'
 import { useRouter } from 'next/navigation';
 import { AppContext } from '@/context/AppContext';
+import styles from './styles.module.css'
 
 const NavBar = () => {
     const { push } = useRouter();
@@ -17,13 +17,13 @@ const NavBar = () => {
     const addedItemsCount = cartItems.length;
 
     return (
-      <Container>
+      <div className={styles.nav_bar}>
           <Typography variant="h4" onClick={()=> push('/dashboard')}>StellarStore</Typography>
 
           <Badge badgeContent={addedItemsCount} color="primary">
               <Button  variant="text" startIcon={<LocalMallIcon/>} onClick={()=> push('/cart')} sx={{border: '.5px solid #000', color: '#000'}}>Cart</Button>
           </Badge>
-      </Container>
+      </div>
     )
 }
 
